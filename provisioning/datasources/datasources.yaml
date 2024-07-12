@@ -9,6 +9,8 @@ datasources:
     orgId: 1
     version: 1
     editable: true
+    jsonData:
+      codeEditorEnabled: true
   - name: Websocket
     type: golioth-websocket-datasource
     uid: LWj8ert4k
@@ -18,3 +20,12 @@ datasources:
     editable: true
     jsonData:
       host: ws://host.docker.internal:8080
+  - name: Large File
+    type: marcusolsson-json-datasource
+    url: https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
+    access: proxy
+    uid: X6tfeT2nz
+    isDefault: false
+    orgId: 1
+    version: 1
+    editable: true

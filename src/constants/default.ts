@@ -4,12 +4,12 @@ import { Format } from './editor';
 import { Map } from './maps';
 
 /**
- * ECharts Example
+ * ECharts Initial Code Function
  */
-const getOption = `const series = data.series.map((s) => {
+const GET_OPTION = `const series = context.panel.data.series.map((s) => {
   const sData = s.fields.find((f) => f.type === 'number').values.buffer || s.fields.find((f) => f.type === 'number').values;
   const sTime = s.fields.find((f) => f.type === 'time').values.buffer || s.fields.find((f) => f.type === 'time').values;
-
+  
   return {
     name: s.refId,
     type: 'line',
@@ -27,7 +27,7 @@ const getOption = `const series = data.series.map((s) => {
 /**
  * Enable Data Zoom by default
  */
-setTimeout(() => echartsInstance.dispatchAction({
+setTimeout(() => context.panel.chart.dispatchAction({
   type: 'takeGlobalCursor',
   key: 'dataZoomSelect',
   dataZoomSelectActive: true,
@@ -36,7 +36,7 @@ setTimeout(() => echartsInstance.dispatchAction({
 /**
  * Update Time Range on Zoom
  */
-echartsInstance.on('datazoom', function (params) {
+context.panel.chart.on('datazoom', function (params) {
   const startValue = params.batch[0]?.startValue;
   const endValue = params.batch[0]?.endValue;
   locationService.partial({ from: startValue, to: endValue });
@@ -50,7 +50,7 @@ return {
   legend: {
     left: '0',
     bottom: '0',
-    data: data.series.map((s) => s.refId),
+    data: context.panel.data.series.map((s) => s.refId),
     textStyle: {
       color: 'rgba(128, 128, 128, .9)',
     },
@@ -85,13 +85,29 @@ return {
 };`;
 
 /**
+ * ECharts Initial Visual Function
+ */
+const VISUAL_EDITOR_CODE = `return {
+  dataset: context.editor.dataset,
+  series: context.editor.series,
+  xAxis: {
+    type: 'time',
+  },
+  yAxis: {
+    type: 'value',
+    min: 'dataMin',
+  },
+}
+`;
+
+/**
  * Default Options
  */
-export const DefaultOptions: PanelOptions = {
-  getOption,
+export const DEFAULT_OPTIONS: PanelOptions = {
+  getOption: GET_OPTION,
   renderer: Renderer.CANVAS,
-  themeEditor: { name: Theme.DEFAULT, config: '{}', height: 400 },
-  editor: { height: 600, format: Format.AUTO },
+  themeEditor: { name: Theme.DEFAULT, config: '{}' },
+  editor: { format: Format.AUTO },
   map: Map.NONE,
   baidu: {
     key: '',
@@ -104,5 +120,10 @@ export const DefaultOptions: PanelOptions = {
   google: {
     key: '',
     callback: 'gmapReady',
+  },
+  visualEditor: {
+    dataset: [],
+    series: [],
+    code: VISUAL_EDITOR_CODE,
   },
 };

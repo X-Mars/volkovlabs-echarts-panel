@@ -1,10 +1,107 @@
 # Change Log
 
-## 4.6.0 (IN PROGRESS)
+## 6.2.0 (IN PROGRESS)
 
 ### Features / Enhancements
 
-- Update Documentation (#182)
+- Updated to Apache ECharts 5.5.1 (#309)
+- Updated E2E workflow using Docker (#310)
+
+## 6.1.0 (2024-05-26)
+
+### Features / Enhancements
+
+- Added plugin e2e tests and remove cypress (#281, #283)
+- Updated context parameters in Examples (#282)
+- Added Business Charts video tutorial (#291)
+- Updated provisioning for events (#289)
+- Updated panel options (#289)
+- Updated Code suggestions (#293)
+- Updated to Grafana 11.0 and dependencies (#294)
+
+## 6.0.0 (2024-03-24)
+
+### Breaking changes
+
+- Requires Grafana 10 and Grafana 11.
+- Removed non-context code parameters. Please update parameters to use `context`.
+
+### Code parameters migration guide
+
+- data -> context.panel.data
+- theme -> context.grafana.theme
+- echartsInstance -> context.panel.chart
+- echarts -> context.echarts
+- ecStat -> context.ecStat
+- replaceVariables -> context.grafana.replaceVariables
+- eventBus -> context.grafana.eventBus
+- locationService -> context.grafana.locationService
+- notifySuccess -> context.grafana.notifySuccess
+- notifyError -> context.grafana.notifyError
+
+### Features / Enhancements
+
+- Updated name to Business Charts Panel (#268)
+- Added Apache Acknowledgment and update description (#268)
+- Updated to Grafana 10.4.1 (#270)
+- Removed ArrayVector deprecated in Grafana 11 (#272)
+- Updated Apache ECharts deprecation warnings (#272)
+
+## 5.3.0 (2024-03-06)
+
+### Features / Enhancements
+
+- Updated to Apache ECharts 5.5.0 (#257)
+- Updated code parameters with Code Parameters Builder (#261)
+- Updated auto size code editor (#263)
+
+## 5.2.0 (2024-02-15)
+
+### Breaking changes
+
+- Requires Grafana 9.2 and Grafana 10
+
+### Features / Enhancements
+
+- Updated README and documentation (#214)
+- Added visual editor for working with data sources (#211)
+- Updated ESLint configuration and refactoring (#237)
+- Updated dependencies and Actions (#238)
+- Added context parameter to non-visual mode (#245)
+- Added refresh function using Application Event Bus (#247)
+- Updated to disallow to choose already selected fields (#251)
+- Updated echarts.volkovlabs.io to use visual editor and data sources (#248)
+- Updated draggable handler in Visual editor (#256)
+
+## 5.1.0 (2023-08-11)
+
+### Features / Enhancements
+
+- Updated to Grafana 10.0.3 (#206)
+
+### Bugfixes
+
+- Fixed Memory Leak on resubscribing to restore event (#208)
+
+## 5.0.0 (2023-07-19)
+
+### Breaking changes
+
+- Requires Grafana 9 and Grafana 10
+
+### Features / Enhancements
+
+- Updated Documentation (#182)
+- Updated Examples to Grafana 10 (#190)
+- Added Result v2 with unsubscribe function (#188)
+- Updated Streaming to redraw charts (#188)
+- Updated to Grafana 10.0.0 (#191)
+- Updated README and panel options (#192)
+- Removed Grafana 8.5 support (#193)
+- Updated to Grafana 10.0.2 dependencies (#195)
+- Updated ESLint configuration (#196)
+- Added Wordcloud Extension (#198)
+- Updated to Apache ECharts 5.4.3 (#199)
 
 ## 4.5.0 (2023-06-03)
 
@@ -92,7 +189,7 @@
 - Update to Grafana 9.3.1 (#97)
 - Add Google map support (#98)
 - Refactor Maps support (#99)
-- Update to Apache ECharts 5.4.1 (#101) 
+- Update to Apache ECharts 5.4.1 (#101)
 
 ### Bug fixes
 

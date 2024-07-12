@@ -1,45 +1,53 @@
 import { PanelPlugin } from '@grafana/data';
-import { EChartsEditor, EChartsPanel } from './components';
+
+import { EchartsEditor, EchartsPanel, VisualEditor } from './components';
 import {
-  DefaultOptions,
+  DEFAULT_OPTIONS,
   Editor,
-  FormatOptions,
+  EDITOR_MODE_OPTIONS,
+  EditorMode,
+  FORMAT_OPTIONS,
   Map,
-  MapOptions,
-  RendererOptions,
+  MAP_OPTIONS,
+  RENDERER_OPTIONS,
   Theme,
-  ThemeOptions,
+  THEME_OPTIONS,
 } from './constants';
+import { getMigratedOptions } from './migration';
 import { PanelOptions } from './types';
 
 /**
  * Panel Plugin
  */
-export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
+export const plugin = new PanelPlugin<PanelOptions>(EchartsPanel)
   .setNoPadding()
+  .setMigrationHandler(getMigratedOptions)
   .setPanelOptions((builder) => {
+    const isCodeEditor = (config: PanelOptions) => config.editorMode !== EditorMode.VISUAL;
+    const isVisualEditor = (config: PanelOptions) => config.editorMode === EditorMode.VISUAL;
+
     builder
       .addRadio({
         path: 'renderer',
         name: 'Renderer',
         settings: {
-          options: RendererOptions,
+          options: RENDERER_OPTIONS,
         },
-        defaultValue: DefaultOptions.renderer,
+        defaultValue: DEFAULT_OPTIONS.renderer,
       })
       .addRadio({
         path: 'map',
         name: 'Maps',
         settings: {
-          options: MapOptions,
+          options: MAP_OPTIONS,
         },
-        defaultValue: DefaultOptions.map,
+        defaultValue: DEFAULT_OPTIONS.map,
       })
       .addRadio({
         path: 'themeEditor.name',
         name: 'Theme',
         settings: {
-          options: ThemeOptions,
+          options: THEME_OPTIONS,
         },
         defaultValue: Theme.DEFAULT,
       });
@@ -53,7 +61,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         name: 'Access Key',
         description:
           'Set Access Key to use Baidu Maps. You can get it from https://lbsyun.baidu.com/apiconsole/key#/home',
-        defaultValue: DefaultOptions.baidu.key,
+        defaultValue: DEFAULT_OPTIONS.baidu.key,
         showIf: (config) => config.map === Map.BMAP,
         category: ['Baidu'],
       })
@@ -61,7 +69,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         path: 'baidu.callback',
         name: 'Callback',
         description: 'Name of the Callback function.',
-        defaultValue: DefaultOptions.baidu.callback,
+        defaultValue: DEFAULT_OPTIONS.baidu.callback,
         showIf: (config) => config.map === Map.BMAP,
         category: ['Baidu'],
       });
@@ -74,7 +82,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         path: 'gaode.key',
         name: 'Access Key',
         description: 'Set Access Key to use Gaode Maps. You can get it from https://console.amap.com/dev/key/app',
-        defaultValue: DefaultOptions.gaode.key,
+        defaultValue: DEFAULT_OPTIONS.gaode.key,
         showIf: (config) => config.map === Map.AMAP,
         category: ['Gaode'],
       })
@@ -82,7 +90,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         path: 'gaode.plugin',
         name: 'Plugins',
         description: 'Name of the Plugins to use.',
-        defaultValue: DefaultOptions.gaode.plugin,
+        defaultValue: DEFAULT_OPTIONS.gaode.plugin,
         showIf: (config) => config.map === Map.AMAP,
         category: ['Gaode'],
       });
@@ -96,7 +104,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         name: 'Access Key',
         description:
           'Set Access Key to use Google Maps. You can get it from https://console.cloud.google.com/apis/credentials',
-        defaultValue: DefaultOptions.google.key,
+        defaultValue: DEFAULT_OPTIONS.google.key,
         showIf: (config) => config.map === Map.GMAP,
         category: ['Google'],
       })
@@ -104,7 +112,7 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
         path: 'google.callback',
         name: 'Callback',
         description: 'Name of the Callback function.',
-        defaultValue: DefaultOptions.google.callback,
+        defaultValue: DEFAULT_OPTIONS.google.callback,
         showIf: (config) => config.map === Map.GMAP,
         category: ['Google'],
       });
@@ -113,60 +121,76 @@ export const plugin = new PanelPlugin<PanelOptions>(EChartsPanel)
      * Editor
      */
     builder
-      .addSliderInput({
-        path: 'editor.height',
-        name: 'Height, px',
-        defaultValue: DefaultOptions.editor.height,
+      .addRadio({
+        path: 'editorMode',
+        name: 'Editor Mode',
+        defaultValue: EditorMode.VISUAL,
         settings: {
-          min: 100,
-          max: 2000,
+          options: EDITOR_MODE_OPTIONS,
         },
-        category: ['Code'],
+        category: ['Editor'],
       })
       .addRadio({
         path: 'editor.format',
         name: 'Formatting',
         settings: {
-          options: FormatOptions,
+          options: FORMAT_OPTIONS,
         },
-        defaultValue: DefaultOptions.editor.format,
-        category: ['Code'],
+        defaultValue: DEFAULT_OPTIONS.editor.format,
+        category: ['Editor'],
+      });
+
+    /**
+     * Visual Editor
+     */
+    builder
+      .addCustomEditor({
+        id: 'visualEditor',
+        path: 'visualEditor',
+        name: 'Visual Editor',
+        defaultValue: DEFAULT_OPTIONS.visualEditor,
+        editor: VisualEditor,
+        category: ['Visual Editor'],
+        showIf: isVisualEditor,
       })
       .addCustomEditor({
-        id: Editor.CODE,
-        path: 'getOption',
+        id: Editor.VISUALCODE,
+        path: 'visualEditor.code',
         name: 'Function',
-        description: 'Should return parameters and data for setOptions().',
-        defaultValue: DefaultOptions.getOption,
-        editor: EChartsEditor,
-        category: ['Code'],
+        description: 'Should return parameters and data for setOption() or an extended result object.',
+        defaultValue: DEFAULT_OPTIONS.visualEditor.code,
+        editor: EchartsEditor,
+        category: ['Visual Editor'],
+        showIf: isVisualEditor,
       });
+
+    /**
+     * Code Editor
+     */
+    builder.addCustomEditor({
+      id: Editor.CODE,
+      path: 'getOption',
+      name: 'Function',
+      description: 'Should return parameters and data for setOption() or an extended result object.',
+      defaultValue: DEFAULT_OPTIONS.getOption,
+      editor: EchartsEditor,
+      category: ['Code'],
+      showIf: isCodeEditor,
+    });
 
     /**
      * Theme
      */
-    builder
-      .addSliderInput({
-        path: 'themeEditor.height',
-        name: 'Height, px',
-        defaultValue: DefaultOptions.themeEditor.height,
-        settings: {
-          min: 100,
-          max: 2000,
-        },
-        category: ['Theme'],
-        showIf: (config) => config.themeEditor.name === Theme.CUSTOM,
-      })
-      .addCustomEditor({
-        id: Editor.THEME,
-        path: 'themeEditor.config',
-        name: 'Configuration',
-        description: 'Custom Theme from the Theme Builder.',
-        defaultValue: DefaultOptions.themeEditor.config,
-        editor: EChartsEditor,
-        category: ['Theme'],
-        showIf: (config) => config.themeEditor.name === Theme.CUSTOM,
-      });
+    builder.addCustomEditor({
+      id: Editor.THEME,
+      path: 'themeEditor.config',
+      name: 'Configuration',
+      description: 'Custom Theme from the Theme Builder.',
+      defaultValue: DEFAULT_OPTIONS.themeEditor.config,
+      editor: EchartsEditor,
+      category: ['Theme'],
+      showIf: (config) => config.themeEditor.name === Theme.CUSTOM,
+    });
 
     return builder;
   })

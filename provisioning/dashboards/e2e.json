@@ -18,6 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 3,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -42,19 +43,30 @@
           "format": "auto",
           "height": 669
         },
+        "editorMode": "code",
         "followTheme": true,
         "gaode": {
           "key": "",
           "plugin": "AMap.Scale,AMap.ToolBar"
         },
-        "getOption": "let names = [];\nlet amounts = [];\ndata.series.map((s) => {\n  names = s.fields.find((f) => f.name === 'Name').values.buffer;\n  amounts = s.fields.find((f) => f.name === 'Amount').values.buffer;\n});\n\nreturn {\n  grid: {\n    bottom: \"3%\",\n    containLabel: true,\n    left: \"3%\",\n    right: \"4%\",\n    top: \"4%\",\n  },\n  tooltip: {},\n  legend: {\n    data: [replaceVariables('$var')]\n  },\n  xAxis: {\n    data: names\n  },\n  yAxis: {},\n  toolbox: { feature: { restore: {} } },\n  series: [\n    {\n      name: replaceVariables('$var'),\n      type: 'bar',\n      data: amounts\n    }\n  ]\n};\n",
+        "getOption": "let names = [];\nlet amounts = [];\ncontext.panel.data.series.map((s) => {\n  names = s.fields.find((f) => f.name === 'Name').values;\n  amounts = s.fields.find((f) => f.name === 'Amount').values;\n});\n\nreturn {\n  grid: {\n    bottom: \"3%\",\n    containLabel: true,\n    left: \"3%\",\n    right: \"4%\",\n    top: \"4%\",\n  },\n  tooltip: {},\n  legend: {\n    data: [context.grafana.replaceVariables('$var')]\n  },\n  xAxis: {\n    data: names\n  },\n  yAxis: {},\n  toolbox: { feature: { restore: {} } },\n  series: [\n    {\n      name: context.grafana.replaceVariables('$var'),\n      type: 'bar',\n      data: amounts\n    }\n  ]\n};\n",
         "google": {
           "callback": "gmapReady",
           "key": ""
         },
         "map": "none",
-        "renderer": "canvas"
+        "renderer": "canvas",
+        "themeEditor": {
+          "config": "{}",
+          "name": "default"
+        },
+        "visualEditor": {
+          "code": "return {\n  dataset: context.editor.dataset,\n  series: context.editor.series,\n  xAxis: {\n    type: 'time',\n  },\n  yAxis: {\n    type: 'value',\n    min: 'dataMin',\n  },\n}\n",
+          "dataset": [],
+          "series": []
+        }
       },
+      "pluginVersion": "6.1.0",
       "targets": [
         {
           "datasource": {
@@ -87,8 +99,7 @@
     }
   ],
   "refresh": "",
-  "schemaVersion": 38,
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": [
@@ -122,6 +133,6 @@
   "timezone": "",
   "title": "E2E Testing",
   "uid": "fdd5dbe3-794c-4441-9d1c-024a537bbe99",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

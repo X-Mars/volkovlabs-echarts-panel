@@ -1,4 +1,5 @@
 import { PanelPlugin } from '@grafana/data';
+
 import { Map, Theme } from './constants';
 import { plugin } from './module';
 
@@ -9,6 +10,13 @@ jest.mock('./maps', () => ({
   registerMaps: () => {
     return;
   },
+}));
+
+/**
+ * Mock echarts-wordcloud
+ */
+jest.mock('echarts-wordcloud', () => ({
+  extendSeriesModel: jest.fn(),
 }));
 
 /*
@@ -39,7 +47,6 @@ describe('plugin', () => {
      * Inputs
      */
     expect(builder.addCustomEditor).toHaveBeenCalled();
-    expect(builder.addSliderInput).toHaveBeenCalled();
     expect(builder.addRadio).toHaveBeenCalled();
     expect(builder.addTextInput).toHaveBeenCalled();
   });
@@ -97,7 +104,6 @@ describe('plugin', () => {
 
       plugin['optionsSupplier'](builder);
 
-      expect(shownSliderInputPaths).toEqual(expect.arrayContaining(['themeEditor.height']));
       expect(shownEditorPaths).toEqual(expect.arrayContaining(['themeEditor.config']));
     });
   });

@@ -1,4 +1,6 @@
-import { CodeEditorSuggestionItem, CodeEditorSuggestionItemKind } from '@grafana/ui';
+import { CodeEditorSuggestionItem } from '@grafana/ui';
+
+import { codeParameters, visualCodeParameters } from '../utils';
 
 /**
  * Editors
@@ -6,6 +8,7 @@ import { CodeEditorSuggestionItem, CodeEditorSuggestionItemKind } from '@grafana
 export const enum Editor {
   CODE = 'getOption',
   THEME = 'themeEditor',
+  VISUALCODE = 'visualCode',
 }
 
 /**
@@ -25,65 +28,35 @@ export enum Format {
 }
 
 /**
- * Format Options
+ * Editor Mode
  */
-export const FormatOptions = [
-  { value: Format.AUTO, label: 'Auto' },
-  { value: Format.NONE, label: 'Disabled' },
+export enum EditorMode {
+  CODE = 'code',
+  VISUAL = 'visual',
+}
+
+/**
+ * Editor Mode Options
+ */
+export const EDITOR_MODE_OPTIONS = [
+  { value: EditorMode.CODE, label: 'Code', icon: 'keyboard' },
+  { value: EditorMode.VISUAL, label: 'Visual', icon: 'chart-line' },
 ];
 
 /**
- * Suggestions
+ * Format Options
  */
-export const CodeEditorSuggestions: CodeEditorSuggestionItem[] = [
-  {
-    label: 'data',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'Result set of panel queries.',
-  },
-  {
-    label: 'theme',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'Theme object.',
-  },
-  {
-    label: 'echartsInstance',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'Instance of the ECharts.',
-  },
-  {
-    label: 'echarts',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'ECharts library.',
-  },
-  {
-    label: 'ecStat',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'A statistical and data mining tool.',
-  },
-  {
-    label: 'locationService',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'Browser location and history.',
-  },
-  {
-    label: 'eventBus',
-    kind: CodeEditorSuggestionItemKind.Property,
-    detail: 'Event bus for application events.',
-  },
-  {
-    label: 'replaceVariables',
-    kind: CodeEditorSuggestionItemKind.Method,
-    detail: 'Interpolate variables.',
-  },
-  {
-    label: 'notifySuccess',
-    kind: CodeEditorSuggestionItemKind.Method,
-    detail: 'Display successful notification.',
-  },
-  {
-    label: 'notifyError',
-    kind: CodeEditorSuggestionItemKind.Method,
-    detail: 'Display error notification.',
-  },
+export const FORMAT_OPTIONS = [
+  { value: Format.AUTO, label: 'Auto', icon: 'thumbs-up' },
+  { value: Format.NONE, label: 'Disabled', icon: 'toggle-off' },
 ];
+
+/**
+ * Code Suggestions
+ */
+export const CODE_EDITOR_SUGGESTIONS: CodeEditorSuggestionItem[] = codeParameters.suggestions;
+
+/**
+ * Visual Code Editor Suggestions
+ */
+export const VISUAL_CODE_EDITOR_SUGGESTIONS: CodeEditorSuggestionItem[] = visualCodeParameters.suggestions;
