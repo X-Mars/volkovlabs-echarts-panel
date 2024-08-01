@@ -1,11 +1,13 @@
 # Change Log
 
-## 6.2.0 (IN PROGRESS)
+## 6.2.0 (2024-08-01)
 
 ### Features / Enhancements
 
 - Updated to Apache ECharts 5.5.1 (#309)
 - Updated E2E workflow using Docker (#310)
+- Updated migration for context parameters (#317)
+- Added Radar to visual editor (#316)
 
 ## 6.1.0 (2024-05-26)
 
@@ -41,7 +43,7 @@
 
 ### Features / Enhancements
 
-- Updated name to Business Charts Panel (#268)
+- Updated name to Business Charts panel (#268)
 - Added Apache Acknowledgment and update description (#268)
 - Updated to Grafana 10.4.1 (#270)
 - Removed ArrayVector deprecated in Grafana 11 (#272)
