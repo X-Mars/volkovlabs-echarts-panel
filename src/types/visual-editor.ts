@@ -1,4 +1,10 @@
-import { EChartOption } from 'echarts';
+import { LineSeriesOption } from 'echarts';
+
+import { BarSeriesOptions } from './bar';
+import { BoxplotSeriesOptions } from './boxplot';
+import { RadarConfigOptions, RadarSeriesOptions } from './radar';
+import { ScatterSeriesOptions } from './scatter';
+import { SunburstSeriesOptions } from './sunburst';
 
 /**
  * Dataset Item
@@ -76,7 +82,13 @@ export interface BaseSeriesOptions {
 /**
  * Line Series Options
  */
-export interface LineSeriesOptions extends EChartOption.SeriesLine {
+export interface LineSeriesOptions extends LineSeriesOption {
+  /**
+   * Type
+   * type?: string in LineSeriousOption not working as expected with SeriesByType
+   */
+  type: SeriesType.LINE;
+
   /**
    * Encode
    */
@@ -103,21 +115,21 @@ export interface LineSeriesOptions extends EChartOption.SeriesLine {
 export type SeriesItem = BaseSeriesOptions &
   (
     | ({ type: SeriesType.LINE } & LineSeriesOptions)
-    | { type: SeriesType.BAR }
+    | ({ type: SeriesType.BAR } & BarSeriesOptions)
     | { type: SeriesType.LINES }
-    | { type: SeriesType.BOXPLOT }
+    | ({ type: SeriesType.BOXPLOT } & BoxplotSeriesOptions)
     | { type: SeriesType.MAP }
     | { type: SeriesType.CUSTOM }
     | { type: SeriesType.HEATMAP }
     | { type: SeriesType.GRAPH }
     | { type: SeriesType.GAUGE }
     | { type: SeriesType.PIE }
-    | { type: SeriesType.SCATTER }
+    | ({ type: SeriesType.SCATTER } & ScatterSeriesOptions)
     | { type: SeriesType.EFFECTSCATTER }
-    | { type: SeriesType.RADAR }
+    | ({ type: SeriesType.RADAR } & RadarSeriesOptions)
     | { type: SeriesType.TREE }
     | { type: SeriesType.TREEMAP }
-    | { type: SeriesType.SUNBURST }
+    | ({ type: SeriesType.SUNBURST } & SunburstSeriesOptions)
     | { type: SeriesType.CANDLESTICK }
     | { type: SeriesType.PARALLEL }
     | { type: SeriesType.SANKEY }
@@ -150,6 +162,13 @@ export interface VisualEditorOptions {
    * @type {string}
    */
   code: string;
+
+  /**
+   * Radar options
+   *
+   * @type {RadarConfigOptions}
+   */
+  radar?: RadarConfigOptions;
 }
 
 /**

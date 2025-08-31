@@ -1,8 +1,28 @@
-import { DataFrame } from '@grafana/data';
+import { DataFrame, FieldType, SelectableValue } from '@grafana/data';
+import { findField } from '@volkovlabs/components';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DatasetItem, SeriesByType, SeriesItem, SeriesType } from '../types';
+import { SUNBURST_DEFAULT } from '../constants';
+import { DatasetItem, RadarChartOptions, SeriesByType, SeriesItem, SeriesType, VisualEditorOptions } from '../types';
+import { convertScatterOptions } from './convert-scatter-options';
+import { convertSunburstOptions } from './convert-sunburst-options';
 import { getFieldValues } from './data-frame';
+
+/**
+ * Get field based on option value
+ * @param fieldName
+ * @param series
+ */
+export const getFieldBasedOptionValue = <TValue>(fieldName: string, series: DataFrame[]) => {
+  const valueFields = fieldName.split(':');
+
+  return findField<TValue>(series, (field, frame) => {
+    if (frame?.refId === valueFields[0]) {
+      return field.name === valueFields[1];
+    }
+    return false;
+  });
+};
 
 /**
  * Reorder
@@ -83,6 +103,53 @@ export const getSeriesWithNewType = <TItem extends Pick<SeriesItem, 'id' | 'name
         type: newType,
       };
     }
+    case SeriesType.RADAR: {
+      return {
+        ...commonValues,
+        data: [],
+        radarDimensions: [],
+        type: newType,
+      };
+    }
+    case SeriesType.BAR: {
+      return {
+        ...commonValues,
+        encode: {
+          x: [],
+          y: [],
+        },
+        type: newType,
+      };
+    }
+    case SeriesType.SUNBURST: {
+      return {
+        ...commonValues,
+        ...SUNBURST_DEFAULT,
+        type: newType,
+      };
+    }
+    case SeriesType.BOXPLOT: {
+      return {
+        ...commonValues,
+        encode: {
+          x: [],
+          y: [],
+        },
+        type: newType,
+      };
+    }
+    case SeriesType.SCATTER: {
+      return {
+        ...commonValues,
+        encode: {
+          x: [],
+          y: [],
+          tooltip: [],
+        },
+        symbol: 'circle',
+        type: newType,
+      };
+    }
     default: {
       return {
         ...commonValues,
@@ -93,6 +160,158 @@ export const getSeriesWithNewType = <TItem extends Pick<SeriesItem, 'id' | 'name
 };
 
 /**
+ * Convert Series to chart option
+ * @param item
+ * @param series
+ * @param dataset
+ */
+export const convertSeriesToChartOption = (item: SeriesItem, series: DataFrame[], dataset: DatasetItem[]) => {
+  switch (item.type) {
+    case SeriesType.RADAR: {
+      const currentData = item.radarDimensions.map((dimension) => {
+        let currentValue: number[] = [];
+        if (dimension.value) {
+          const valueFields = dimension.value.split(':');
+          const field = findField<number>(series, (field, frame) => {
+            if (frame?.refId === valueFields[0]) {
+              return field.name === valueFields[1] && field.type === FieldType.number;
+            }
+            return false;
+          });
+          currentValue = field ? field.values : [];
+        }
+
+        return {
+          name: dimension.name,
+          value: currentValue,
+        };
+      });
+
+      return {
+        ...item,
+        data: currentData,
+      };
+    }
+    case SeriesType.SCATTER: {
+      return convertScatterOptions(item, dataset);
+    }
+    case SeriesType.SUNBURST: {
+      return convertSunburstOptions(item, series);
+    }
+    default: {
+      return item;
+    }
+  }
+};
+
+/**
  * Get Series Unique Id
  */
 export const getSeriesUniqueId = () => uuidv4();
+
+/**
+ * Data Series
+ * @param visualEditorSeries
+ * @param series
+ * @param dataset
+ */
+export const getDataSeries = (visualEditorSeries: SeriesItem[], series: DataFrame[], dataset: DatasetItem[]) => {
+  return visualEditorSeries.map((item) => {
+    return convertSeriesToChartOption(item, series, dataset);
+  });
+};
+
+/**
+ * Check type in Series
+ * @param series
+ * @param type
+ */
+export const isTypeExistInSeries = (series: SeriesItem[], type: SeriesType) => {
+  return series.some((value) => value.type === type);
+};
+
+/**
+ * Get Radar Chart Options
+ * @param visualEditor
+ * @param series
+ */
+export const getRadarOptions = (visualEditor: VisualEditorOptions, series: DataFrame[]): RadarChartOptions => {
+  /**
+   * Default radar options
+   */
+  const radarOptions: RadarChartOptions = {
+    shape: visualEditor.radar?.shape,
+    indicator: [],
+  };
+
+  /**
+   * Get All dimensions for Radar from series
+   */
+  const dimensions = visualEditor.series.flatMap((item) => {
+    if (item.type === SeriesType.RADAR) {
+      return item.radarDimensions;
+    }
+    return [];
+  });
+
+  if (visualEditor.radar?.indicator && dimensions.length) {
+    /**
+     * Get Names for indicator lines
+     */
+    const indicatorValues = getFieldBasedOptionValue<string>(visualEditor.radar?.indicator, series)?.values || [];
+
+    /**
+     * Get max values from fields
+     */
+    const dimensionsMaxValues = dimensions.flatMap((item) => {
+      const field = getFieldBasedOptionValue<number>(item.value, series);
+      return field?.state?.range?.max || 0;
+    });
+
+    /**
+     * Get min values from fields
+     */
+    const dimensionsMinValues = dimensions.flatMap((item) => {
+      const field = getFieldBasedOptionValue<number>(item.value, series);
+      return field?.state?.range?.min || 0;
+    });
+
+    /**
+     * Define radar indicator option
+     */
+    radarOptions.indicator = indicatorValues.map((item) => ({
+      name: item,
+      max: Math.max(...dimensionsMaxValues),
+      min: Math.min(...dimensionsMinValues),
+    }));
+  }
+
+  /**
+   * Set radar option in percentage
+   */
+  if (visualEditor.radar?.radius) {
+    radarOptions.radius = visualEditor.radar?.radius;
+  }
+
+  return radarOptions;
+};
+
+/**
+ * Get Fields for multiple Queries
+ * @param data
+ * @param filterTypes
+ */
+export const multipleQueriesFields = (data: DataFrame[], filterTypes?: FieldType[]) => {
+  return data.reduce((acc: SelectableValue[], dataFrame) => {
+    return acc.concat(
+      dataFrame.fields
+        .filter((field) => (filterTypes ? filterTypes.includes(field.type) : true))
+        .map((field) => ({
+          value: `${dataFrame.refId ? `${dataFrame.refId}:` : ''}${field.name}`,
+          label: `${dataFrame.refId ? `${dataFrame.refId}:` : ''}${field.name}`,
+          refId: dataFrame.refId || '',
+          field: field.name,
+        }))
+    );
+  }, []);
+};

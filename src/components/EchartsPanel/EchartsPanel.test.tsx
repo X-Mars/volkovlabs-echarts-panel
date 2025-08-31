@@ -1,6 +1,7 @@
 import { AlertErrorPayload, AlertPayload, AppEvents, LoadingState, toDataFrame } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import { useDashboardRefresh } from '@volkovlabs/components';
 import * as echarts from 'echarts';
 import React from 'react';
 
@@ -17,6 +18,14 @@ jest.mock('../../maps', () => ({
   loadBaidu: jest.fn(),
   loadGaode: jest.fn(),
   loadGoogle: jest.fn(),
+}));
+
+/**
+ * Mock @volkovlabs/components
+ */
+jest.mock('@volkovlabs/components', () => ({
+  ...jest.requireActual('@volkovlabs/components'),
+  useDashboardRefresh: jest.fn(),
 }));
 
 /**
@@ -174,6 +183,88 @@ describe('Panel', () => {
         },
       })
     );
+    expect(publish).toHaveBeenCalledWith({
+      type: AppEvents.alertSuccess.name,
+      payload: successPayload,
+    });
+    expect(publish).toHaveBeenCalledWith({
+      type: AppEvents.alertError.name,
+      payload: errorPayload,
+    });
+  });
+
+  it('Should publish refresh method called', () => {
+    const refresh = jest.fn();
+
+    jest.mocked(useDashboardRefresh).mockImplementation(() => refresh);
+
+    jest.mocked(echarts.init).mockImplementationOnce(
+      () =>
+        ({
+          setOption: () => {},
+          on: jest.fn(),
+          off: jest.fn(),
+          clear: jest.fn(),
+        }) as any
+    ); // we need only these options
+
+    render(
+      getComponent({
+        options: {
+          getOption: 'return {  refresh: context.grafana.refresh() }',
+        },
+      })
+    );
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should publish events with passed payload even with promise return', async () => {
+    const publish = jest.fn();
+    jest.mocked(getAppEvents).mockImplementation(
+      () =>
+        ({
+          publish,
+        }) as any
+    ); // we need only these options
+    const successPayload: AlertPayload = ['Header', 'Message'];
+    const errorPayload: AlertErrorPayload = ['Header error', 'Message error'];
+    jest.mocked(echarts.init).mockImplementationOnce(
+      () =>
+        ({
+          setOption: ({
+            notifySuccess,
+            notifyError,
+          }: {
+            notifySuccess: (payload: AlertPayload) => void;
+            notifyError: (payload: AlertErrorPayload) => void;
+          }) => {
+            notifySuccess(successPayload);
+            notifyError(errorPayload);
+          },
+          on: jest.fn(),
+          off: jest.fn(),
+          clear: jest.fn(),
+        }) as any
+    ); // we need only these options
+
+    await act(async () =>
+      render(
+        getComponent({
+          options: {
+            getOption: `const options = {}
+             const myPromise = new Promise((resolve, reject) => {
+               context.grafana.notifySuccess(['Header', 'Message'])
+               context.grafana.notifyError(['Header error', 'Message error'])
+               resolve(options)
+             });
+
+            return myPromise
+           `,
+          },
+        })
+      )
+    );
+
     expect(publish).toHaveBeenCalledWith({
       type: AppEvents.alertSuccess.name,
       payload: successPayload,
@@ -408,7 +499,7 @@ describe('Panel', () => {
         expect.objectContaining({
           series: [],
         }),
-        { notMerge: true }
+        true
       );
     });
 
@@ -436,7 +527,7 @@ describe('Panel', () => {
         expect.objectContaining({
           series: [],
         }),
-        { notMerge: true }
+        true
       );
     });
 
@@ -458,7 +549,7 @@ describe('Panel', () => {
       );
       render(getComponent({ options: { getOption } }));
 
-      expect(setOptionMock).toHaveBeenCalledWith(expect.objectContaining({}), { notMerge: true });
+      expect(setOptionMock).toHaveBeenCalledWith(expect.objectContaining({}), true);
     });
 
     it('Should call unsubscribeFunction for v2 result', () => {
@@ -551,7 +642,7 @@ describe('Panel', () => {
             ],
           },
         }),
-        { notMerge: true }
+        true
       );
     });
   });

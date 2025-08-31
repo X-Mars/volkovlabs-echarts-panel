@@ -1,7 +1,7 @@
 apiVersion: 1
 
 datasources:
-  - name: Static
+  - name: Business Input
     type: marcusolsson-static-datasource
     uid: 4ytGZmF4k
     access: proxy
@@ -25,6 +25,15 @@ datasources:
     url: https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
     access: proxy
     uid: X6tfeT2nz
+    isDefault: false
+    orgId: 1
+    version: 1
+    editable: true
+  - name: Apache example
+    type: marcusolsson-json-datasource
+    url: https://echarts.apache.org/examples/data/asset/data/life-expectancy-table.json
+    access: proxy
+    uid: cdxk2saztwflsd
     isDefault: false
     orgId: 1
     version: 1

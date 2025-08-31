@@ -1,6 +1,5 @@
 services:
   grafana:
-    container_name: grafana
     image: ghcr.io/volkovlabs/app:latest
     ports:
       - 3000:3000/tcp
@@ -16,7 +15,6 @@ services:
       - dev
 
   grafana-main:
-    container_name: grafana-main
     image: grafana/grafana:main
     ports:
       - 3000:3000/tcp
@@ -31,8 +29,22 @@ services:
     profiles:
       - main
 
+  grafana-dep:
+    image: grafana/grafana:11.0.0
+    ports:
+      - 3000:3000/tcp
+    environment:
+      - GF_DEFAULT_APP_MODE=development
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_INSTALL_PLUGINS=marcusolsson-static-datasource,golioth-websocket-datasource,marcusolsson-json-datasource
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/volkovlabs-echarts-panel
+      - ./provisioning:/etc/grafana/provisioning
+      - ./echarts.volkovlabs.io:/etc/grafana/provisioning/dashboards/echarts
+    profiles:
+      - dependency
+
   test:
-    container_name: test-e2e
     build:
       context: .
       dockerfile: test/Dockerfile
